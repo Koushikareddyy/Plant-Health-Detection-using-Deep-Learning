@@ -1,17 +1,17 @@
 # plant_health.py
-# 🌿 Plant Disease Detection using CNN (TensorFlow + Keras)
+# 🌿 Plant Disease Detection using Transfer Learning (MobileNetV2 + Keras)
 
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 
 # ---------------------------------------------------------------
-# 1️⃣ Paths to dataset folders
+# 1️⃣ Dataset Paths
 # ---------------------------------------------------------------
 train_dir = 'dataset/train'
 test_dir = 'dataset/test'
@@ -21,110 +21,107 @@ try:
     print("Training folders:", os.listdir(train_dir))
     print("Testing folders:", os.listdir(test_dir))
 except FileNotFoundError:
-    print("Error: Dataset folders not found. Please ensure 'dataset/train' and 'dataset/test' exist.")
+    print("❌ Dataset not found. Ensure 'dataset/train' and 'dataset/test' exist.")
+    exit()
 
 # ---------------------------------------------------------------
-# 2️⃣ Data Preprocessing (Rescale & Augment)
+# 2️⃣ Data Preprocessing
 # ---------------------------------------------------------------
 train_datagen = ImageDataGenerator(
-    rescale=1./255,           
-    shear_range=0.2,          
-    zoom_range=0.2,           
-    horizontal_flip=True,     
-    rotation_range=20,        
-    fill_mode='nearest'       
+    rescale=1./255,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    rotation_range=20
 )
 
-test_datagen = ImageDataGenerator(rescale=1./255) 
+test_datagen = ImageDataGenerator(rescale=1./255)
 
-# CRITICAL FIXES for training stalls
 train_generator = train_datagen.flow_from_directory(
     train_dir,
-    target_size=(128, 128),   
+    target_size=(96, 96),
     batch_size=32,
     class_mode='binary',
-    shuffle=True,
-    workers=1,                 
-    use_multiprocessing=False  
+    shuffle=True
 )
 
 test_generator = test_datagen.flow_from_directory(
     test_dir,
-    target_size=(128, 128),
+    target_size=(96, 96),
     batch_size=32,
-    class_mode='binary',
-    workers=1,
-    use_multiprocessing=False
+    class_mode='binary'
 )
 
 # ---------------------------------------------------------------
-# 3️⃣ Define the CNN Model (FIXED FOR OVERFITTING)
+# 3️⃣ Model Definition (MobileNetV2 Transfer Learning)
 # ---------------------------------------------------------------
+print("🧠 Building MobileNetV2 Transfer Learning Model...")
+
+base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(96, 96, 3))
+base_model.trainable = False  # freeze base layers
+
 model = Sequential([
-    Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)),
-    MaxPooling2D(2, 2),
-
-    Conv2D(64, (3, 3), activation='relu'),
-    MaxPooling2D(2, 2),
-
-    Conv2D(128, (3, 3), activation='relu'),
-    MaxPooling2D(2, 2),
-
-    Dropout(0.5), 
-    
-    Flatten(),
-    
-    Dense(64, activation='relu'), 
-    
-    Dropout(0.5), 
-    
+    base_model,
+    GlobalAveragePooling2D(),
+    Dropout(0.4),
+    Dense(128, activation='relu'),
+    Dropout(0.3),
     Dense(1, activation='sigmoid')
 ])
 
-# ---------------------------------------------------------------
-# 4️⃣ Compile the Model
-# ---------------------------------------------------------------
-model.compile(optimizer=Adam(learning_rate=0.001),
+model.compile(optimizer=Adam(learning_rate=0.0001),
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
-# ---------------------------------------------------------------
-# 5️⃣ Train the Model (ADDED EARLY STOPPING)
-# ---------------------------------------------------------------
-early_stopping = EarlyStopping(
-    monitor='val_accuracy', 
-    patience=5,             
-    restore_best_weights=True 
-)
+early_stopping = EarlyStopping(monitor='val_accuracy', patience=3, restore_best_weights=True)
 
+# ---------------------------------------------------------------
+# 4️⃣ Train the Model (Base Training)
+# ---------------------------------------------------------------
 print("🚀 Starting training...")
 history = model.fit(
     train_generator,
-    steps_per_epoch=len(train_generator),
-    epochs=50, 
+    epochs=10,
     validation_data=test_generator,
-    validation_steps=len(test_generator),
-    callbacks=[early_stopping] 
+    callbacks=[early_stopping]
 )
 
 # ---------------------------------------------------------------
-# 6️⃣ Save the Trained Model
+# 5️⃣ Fine-tune (Unfreeze last layers)
 # ---------------------------------------------------------------
-model.save('plant_health_model.h5')
-print("✅ Training complete! Model saved as 'plant_health_model.h5'.")
+print("🔧 Fine-tuning last layers...")
+base_model.trainable = True
+for layer in base_model.layers[:-30]:  # freeze all but last 30 layers
+    layer.trainable = False
+
+model.compile(optimizer=Adam(learning_rate=1e-5),
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+
+fine_tune_history = model.fit(
+    train_generator,
+    epochs=5,
+    validation_data=test_generator
+)
 
 # ---------------------------------------------------------------
-# 7️⃣ Evaluate Model Performance & Plot
+# 6️⃣ Save the Model
+# ---------------------------------------------------------------
+model.save('plant_health_model.keras')
+print("✅ Model saved as 'plant_health_model.keras'.")
+
+# ---------------------------------------------------------------
+# 7️⃣ Evaluate & Plot
 # ---------------------------------------------------------------
 loss, accuracy = model.evaluate(test_generator)
 print(f"📊 Final Test Accuracy: {accuracy * 100:.2f}%")
 
-# Plot training accuracy and loss
 plt.figure(figsize=(10,5))
-plt.plot(history.history['accuracy'], label='Train Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.title('Model Accuracy')
+plt.plot(history.history['accuracy'] + fine_tune_history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'] + fine_tune_history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('📈 Model Accuracy (with Fine-Tuning)')
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.show()
+
