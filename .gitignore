@@ -1,3 +1,23 @@
+# ---- Git Ignore Configuration ----
+
+# Virtual environment
+venv/
+
+# Uploaded images (temporary)
+uploads/*
+
+# Old model formats
+*.h5
+
+# Python cache files
+__pycache__/
+
+# macOS system files
+.DS_Store
+
+# Log or temp files
+*.log
+*.tmp
 dataset/
 __pycache__/
 *.pyc
