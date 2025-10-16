@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Result</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f4f7f6; color: #333; margin-top: 50px; }
+        .container { width: 90%; max-width: 450px; margin: 0 auto; padding: 30px; background-color: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        h1 { color: #007bff; margin-bottom: 20px; }
+        .result-box { padding: 25px; border-radius: 10px; margin-top: 30px; }
+        /* Style based on prediction */
+        .healthy { background-color: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .diseased { background-color: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        .healthy h2 { color: #155724; }
+        .diseased h2 { color: #721c24; }
+        a { text-decoration: none; color: #007bff; margin-top: 20px; display: inline-block; padding: 10px 15px; border: 1px solid #007bff; border-radius: 5px; transition: background-color 0.3s; }
+        a:hover { background-color: #007bff; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌱 Diagnosis Report</h1>
+        
+        <div class="result-box {{ 'healthy' if 'Healthy' in label else 'diseased' }}">
+            <h2>Result: {{ label }}</h2>
+            <p>Model Confidence: <strong>{{ confidence }}</strong></p>
+        </div>
+        
+        <a href="/">Diagnose Another Image</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plant Health Detector</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        .container { width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        input[type="file"] { margin: 10px 0; }
+        input[type="submit"] { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌿 Plant Health Detector</h1>
+        <p>Upload a leaf image to check if it's Healthy or Diseased.</p>
+        <form method="POST" action="/predict" enctype="multipart/form-data">
+            <input type="file" name="file" accept="image/*" required>
+            <br><br>
+            <input type="submit" value="Diagnose Health">
+        </form>
+    </div>
+</body>
+</html>
