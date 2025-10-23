@@ -1,61 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌿 Plant Health Detection</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 Plant Health Detection</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(180deg, #f9fdf9 0%, #c7e2c3 100%);
+            margin: 0;
+            padding: 0;
+            color: #2d4831;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #2d4831;
+        }
+
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .hero img {
+            width: 220px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            color: #4a6b4c;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        form {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px 40px;
+            max-width: 400px;
+            margin: auto;
+        }
+
+        input[type=file] {
+            border: 2px dashed #a3c9a7;
+            border-radius: 15px;
+            padding: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+            cursor: pointer;
+            background-color: #f9fff9;
+            color: #2d4831;
+        }
+
+        button {
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(90deg, #45a049, #7cbf76);
+            transform: scale(1.05);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            font-size: 0.9rem;
+            color: #4a6b4c;
+        }
+
+        /* Image preview gallery */
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preview-container img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid #a3c9a7;
+            transition: transform 0.3s ease;
+        }
+
+        .preview-container img:hover {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
+<body>
+    <header>
+        <h1>🌿 Plant Health Detection</h1>
+    </header>
 
-<body class="bg-green-50 flex items-center justify-center min-h-screen">
-  <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md text-center">
-    <h1 class="text-3xl font-bold text-green-700 mb-4">🌱 Plant Health Detection</h1>
-    <p class="text-gray-600 mb-6">Upload a leaf image to check its health status.</p>
+    <section class="hero">
+        <img src="{{ url_for('static', filename='images/image.png') }}" alt="Cute Plant Icons" class="hero-image">
+        <h2>Identify and Check Your Plant’s Health 🌱</h2>
+        <p>Upload your leaf photos below to detect if your plant is healthy or needs care </p>
 
-    <!-- Upload Form -->
-    <form action="/predict" method="POST" enctype="multipart/form-data" class="space-y-4">
-      <input 
-        type="file" 
-        name="file" 
-        accept="image/*" 
-        required 
-        id="fileInput"
-        class="block w-full text-sm text-gray-900 border border-green-300 rounded-lg cursor-pointer bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-500"
-      >
+        <form action="/predict" method="post" enctype="multipart/form-data">
+            <input type="file" name="files[]" id="fileInput" accept=".jpg,.jpeg,.png" multiple required><br>
 
-      <!-- Live Image Preview -->
-      <div id="previewContainer" class="hidden mt-4">
-        <p class="text-sm text-gray-500 mb-2">Preview:</p>
-        <img id="previewImage" class="mx-auto rounded-lg shadow-md w-64 h-64 object-cover" alt="Preview will appear here">
-      </div>
+            <!-- Preview container -->
+            <div id="preview" class="preview-container"></div>
 
-      <button 
-        type="submit"
-        class="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
-        🌿 Analyze Leaf
-      </button>
-    </form>
-  </div>
+            <button type="submit">Diagnose Now</button>
+        </form>
+    </section>
 
-  <!-- JavaScript for Live Preview -->
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const previewImage = document.getElementById('previewImage');
+    <footer>🌸 Helping plant lovers care better 🌸</footer>
 
-    fileInput.addEventListener('change', function() {
-      const file = this.files[0];
-      if (file) {
-        const reader = new FileReader();
-        previewContainer.classList.remove('hidden');
-        reader.addEventListener('load', function() {
-          previewImage.setAttribute('src', this.result);
+    <script>
+        // JavaScript to preview selected images
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const previewContainer = document.getElementById('preview');
+            previewContainer.innerHTML = ""; // Clear existing previews
+
+            const files = event.target.files;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    previewContainer.appendChild(img);
+                };
+
+                reader.readAsDataURL(file);
+            }
         });
-        reader.readAsDataURL(file);
-      } else {
-        previewContainer.classList.add('hidden');
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>

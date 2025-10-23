@@ -3,95 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌱 Prediction Result</title>
+    <title>🌿 Diagnosis Results</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            background-color: #f4f7f6;
-            color: #333;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(180deg, #f9fdf9 0%, #c7e2c3 100%);
             margin: 0;
-            padding: 50px 0;
+            padding: 0;
+            color: #2d4831;
+            text-align: center;
+        }
+
+        header {
+            padding: 20px;
+            font-size: 2rem;
+            font-weight: 600;
+            color: #2d4831;
         }
 
         .container {
-            width: 90%;
-            max-width: 480px;
-            margin: auto;
+            max-width: 1000px;
+            margin: 40px auto;
             padding: 30px;
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
-            color: #28a745;
-            margin-bottom: 20px;
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 30px;
         }
 
-        .result-box {
-            padding: 25px;
-            border-radius: 10px;
-            margin-top: 20px;
+        .card {
+            width: 250px;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
             transition: all 0.3s ease;
         }
 
-        .healthy {
-            background-color: #d4edda;
-            color: #155724;
-            border: 2px solid #c3e6cb;
+        .card:hover {
+            transform: translateY(-5px);
         }
 
-        .diseased {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 2px solid #f5c6cb;
-        }
-
-        .result-box h2 {
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-
-        img {
+        .card img {
             width: 100%;
-            max-width: 250px;
-            margin-top: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .card h3 {
+            margin: 10px 0 0;
+            color: #2d4831;
+        }
+
+        .card p {
+            color: #4a6b4c;
+            margin-bottom: 10px;
+        }
+
+        .advice {
+            background-color: #f1fdf3;
+            padding: 12px;
+            margin: 10px;
+            border-radius: 12px;
+            font-size: 0.9rem;
         }
 
         a {
             display: inline-block;
             margin-top: 25px;
-            text-decoration: none;
-            background-color: #28a745;
+            background: linear-gradient(90deg, #4CAF50, #81C784);
             color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            transition: background-color 0.3s;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
         }
 
         a:hover {
-            background-color: #218838;
+            background: linear-gradient(90deg, #45a049, #7cbf76);
+            transform: scale(1.05);
         }
     </style>
 </head>
-
 <body>
+    <header>🍃 Diagnosis Results</header>
+
     <div class="container">
-        <h1>🌿 Diagnosis Report</h1>
+        <p>Here’s what our AI detected from your uploaded image:</p>
 
-        <div class="result-box {{ 'healthy' if 'Healthy' in label else 'diseased' }}">
-            <h2>Result: {{ label }}</h2>
-            <p>Model Confidence: <strong>{{ confidence }}</strong></p>
-
-            {% if image_url %}
-                <img src="{{ image_url }}" alt="Uploaded Leaf">
-            {% endif %}
+        <div class="grid">
+            {% for result in results %}
+                <div class="card">
+                    <img src="{{ url_for('uploaded_file', filename=result.filename) }}" alt="Leaf Image">
+                    <h3>{{ result.label }}</h3>
+                    <p>Confidence: <strong>{{ result.confidence }}</strong></p>
+                    <div class="advice">
+                        {% if 'Healthy' in result.label %}
+                            🌸 Your plant looks healthy! Keep providing sunlight and regular watering.
+                        {% else %}
+                            🍂 Your plant might be diseased. Trim affected leaves and check soil moisture.
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
         </div>
 
-        <a href="/">🔄 Diagnose Another Image</a>
+        <a href="/">🔁 Diagnose Another Leaf</a>
     </div>
 </body>
 </html>
