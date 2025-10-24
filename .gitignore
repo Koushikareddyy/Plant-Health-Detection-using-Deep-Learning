@@ -8,9 +8,11 @@ uploads/*
 
 # Old model formats
 *.h5
+*.keras
 
 # Python cache files
 __pycache__/
+*.pyc
 
 # macOS system files
 .DS_Store
@@ -18,7 +20,10 @@ __pycache__/
 # Log or temp files
 *.log
 *.tmp
-dataset/
-__pycache__/
-*.pyc
 
+# Dataset - ignore images but keep folder structure
+dataset/**/*.jpg
+dataset/**/*.jpeg
+dataset/**/*.png
+dataset/**/*.bmp
+!dataset/**/.gitkeep
