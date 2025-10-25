@@ -1,84 +1,113 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import numpy as np
-import tensorflow as tf
+from flask import Flask, render_template, request, jsonify, send_from_directory, url_for
+from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from werkzeug.utils import secure_filename
-import uuid
 
-# Configuration
-UPLOAD_FOLDER = 'uploads'
-MODEL_PATH = 'plant_health_model.keras'
-TARGET_SIZE = (96, 96)
-LABELS = {0: 'Diseased', 1: 'Healthy'}
-
+# ---------------------------------------------------------------
+# 🌿 Flask App Configuration
+# ---------------------------------------------------------------
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
 
-# Load model
+# Directory to store uploaded images temporarily
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Model configuration
+MODEL_PATH = 'plant_health_model.keras'
+IMAGE_SIZE = (224, 224)
+
+# ---------------------------------------------------------------
+# 🧠 Load the trained model
+# ---------------------------------------------------------------
 try:
-    model = tf.keras.models.load_model(MODEL_PATH)
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    print("✅ Model loaded successfully!")
+    model = load_model(MODEL_PATH)
+    print("✅ Model loaded successfully.")
 except Exception as e:
-    print(f"❌ Error loading model: {e}")
+    print(f"❌ ERROR: Could not load model from {MODEL_PATH}. Details: {e}")
     model = None
 
-# Ensure uploads folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def allowed_file(filename):
-    """Checks if file type is allowed."""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
-
-def model_predict(img_path, model):
-    """Predicts the health of the plant from the image."""
+# ---------------------------------------------------------------
+# 🌿 Prediction Helper Function
+# ---------------------------------------------------------------
+def model_predict(file_path):
+    """Run prediction on the uploaded image."""
     if model is None:
-        return "Model Error", 0.0
+        return {'prediction': 'Model not loaded', 'confidence': 0.0, 'class_id': -1}
 
-    img = image.load_img(img_path, target_size=TARGET_SIZE)
-    img_array = image.img_to_array(img) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
+    try:
+        # Load and preprocess the image
+        img = image.load_img(file_path, target_size=IMAGE_SIZE)
+        img_array = np.expand_dims(image.img_to_array(img) / 255.0, axis=0)
 
-    prediction = model.predict(img_array)[0][0]
-    label = LABELS[1] if prediction >= 0.5 else LABELS[0]
-    confidence = prediction * 100 if label == 'Healthy' else (1 - prediction) * 100
+        # Predict
+        prediction_raw = model.predict(img_array)[0][0]
+        class_id = 1 if prediction_raw > 0.5 else 0
+        confidence = prediction_raw if class_id == 1 else 1 - prediction_raw
 
-    return label, confidence
+        return {
+            'prediction': "Diseased Leaf 🦠" if class_id == 1 else "Healthy Leaf 🌱",
+            'confidence': round(confidence * 100, 2),
+            'class_id': class_id
+        }
 
+    except Exception as e:
+        print(f"⚠️ Prediction Error: {e}")
+        return {'prediction': f'Error: {e}', 'confidence': 0.0, 'class_id': -1}
+
+# ---------------------------------------------------------------
+# 🏠 Home Route — Upload Page
+# ---------------------------------------------------------------
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# ---------------------------------------------------------------
+# 🔍 Predict Route — Handles Upload and Model Inference
+# ---------------------------------------------------------------
 @app.route('/predict', methods=['POST'])
-def upload():
-    """Handles multiple image uploads."""
-    if 'files[]' not in request.files:
-        return redirect(url_for('index'))
+def predict():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part in request'}), 400
 
-    files = request.files.getlist('files[]')
-    results = []
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
 
-    for file in files:
-        if file and allowed_file(file.filename):
-            unique_filename = str(uuid.uuid4()) + "_" + secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-            file.save(filepath)
+    if file:
+        # Save uploaded image
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        print(f"📸 Uploaded file saved to: {file_path}")
 
-            label, confidence = model_predict(filepath, model)
+        # Run prediction
+        results = model_predict(file_path)
 
-            results.append({
-                'filename': unique_filename,
-                'label': label,
-                'confidence': f"{confidence:.2f}%"
-            })
+        # ✅ Correct image URL path
+        image_url = f"/uploads/{filename}"
 
-    return render_template('result.html', results=results)
+        # Render the result page
+        return render_template(
+            'result.html',
+            prediction=results['prediction'],
+            confidence=f"{results['confidence']:.2f}%",
+            is_healthy=(results['class_id'] == 0),
+            image_url=image_url
+        )
 
+# ---------------------------------------------------------------
+# 🖼️ Route to Serve Uploaded Files
+# ---------------------------------------------------------------
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
+    """Serves the uploaded image for display on the result page."""
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+# ---------------------------------------------------------------
+# 🚀 Run Flask App
+# ---------------------------------------------------------------
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
