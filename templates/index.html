@@ -1,167 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌿 Plant Health Detection</title>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(180deg, #f9fdf9 0%, #c7e2c3 100%);
-            margin: 0;
-            padding: 0;
-            color: #2d4831;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plant Health Detection 🌿</title>
 
-        header {
-            text-align: center;
-            padding: 20px;
-        }
+  <style>
+    :root {
+      --bg-light: #C5E6B7; /* Sage green */
+      --bg-dark: #2F4C39;  /* Deep green */
+      --card-light: #ffffff;
+      --card-dark: #324B3A;
+      --text-light: #1B5E20;
+      --text-dark: #CDEAC0;
+      --accent: #388E3C;
+    }
 
-        header h1 {
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: #2d4831;
-        }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      margin: 0;
+      padding: 40px;
+      text-align: center;
+      transition: background 0.5s ease, color 0.5s ease, opacity 0.5s ease;
+      overflow-x: hidden;
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards;
+    }
 
-        .hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 50px 20px;
-        }
+    @keyframes fadeIn { to { opacity: 1; } }
+    body.fade-out { opacity: 0; transition: opacity 0.6s ease; }
 
-        .hero img {
-            width: 220px;
-            margin-bottom: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
+    body.dark { background: var(--bg-dark); color: var(--text-dark); }
 
-        .hero h2 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
+    h1 {
+      margin-top: 20px;
+      font-size: 2em;
+    }
 
-        .hero p {
-            font-size: 1rem;
-            color: #4a6b4c;
-            max-width: 600px;
-            margin-bottom: 30px;
-        }
+    .upload-card {
+      display: inline-block;
+      background: var(--card-light);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: background 0.5s ease;
+    }
 
-        form {
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            padding: 30px 40px;
-            max-width: 400px;
-            margin: auto;
-        }
+    body.dark .upload-card {
+      background: var(--card-dark);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+    }
 
-        input[type=file] {
-            border: 2px dashed #a3c9a7;
-            border-radius: 15px;
-            padding: 15px;
-            width: 100%;
-            margin-bottom: 20px;
-            cursor: pointer;
-            background-color: #f9fff9;
-            color: #2d4831;
-        }
+    img {
+      width: 250px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      object-fit: cover;
+    }
 
-        button {
-            background: linear-gradient(90deg, #4CAF50, #81C784);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            padding: 12px 25px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
+    input[type=file] {
+      display: none;
+    }
 
-        button:hover {
-            background: linear-gradient(90deg, #45a049, #7cbf76);
-            transform: scale(1.05);
-        }
+    .file-label {
+      padding: 12px 24px;
+      background-color: var(--accent);
+      color: white;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      display: inline-block;
+    }
 
-        footer {
-            text-align: center;
-            padding: 30px;
-            font-size: 0.9rem;
-            color: #4a6b4c;
-        }
+    .file-label:hover { background-color: #1b5e20; }
 
-        /* Image preview gallery */
-        .preview-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+    .file-name {
+      margin-top: 8px;
+      color: #555;
+      font-size: 0.9em;
+    }
 
-        .preview-container img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border: 2px solid #a3c9a7;
-            transition: transform 0.3s ease;
-        }
+    input[type=submit] {
+      padding: 12px 24px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.3s ease;
+    }
 
-        .preview-container img:hover {
-            transform: scale(1.1);
-        }
-    </style>
+    input[type=submit]:hover { background-color: #1b5e20; }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 25px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      cursor: pointer;
+      font-size: 20px;
+      transition: background 0.3s ease, transform 0.2s ease;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      background: #1b5e20;
+      transform: scale(1.1);
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #555;
+      opacity: 0.8;
+    }
+
+    body.dark footer { color: #CDEAC0; }
+
+    /* 🌵 Floating cactus + droppings */
+    .cactus {
+      position: fixed;
+      top: -60px;
+      width: 25px;
+      height: 25px;
+      background: url('{{ url_for('static', filename='images/cactus.png') }}') no-repeat center/contain;
+      opacity: 0.8;
+      animation: floatDown linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .drop {
+      position: fixed;
+      top: -40px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(80, 120, 80, 0.8);
+      box-shadow: 0 0 10px rgba(80, 120, 80, 0.3);
+      opacity: 0.9;
+      animation: dropFall linear forwards;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes floatDown {
+      0% { transform: translateY(-60px) rotate(0deg); opacity: 0.9; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    @keyframes dropFall {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(110vh) scale(0.9); opacity: 0; }
+    }
+  </style>
 </head>
+
 <body>
-    <header>
-        <h1>🌿 Plant Health Detection</h1>
-    </header>
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
 
-    <section class="hero">
-        <img src="{{ url_for('static', filename='images/image.png') }}" alt="Cute Plant Icons" class="hero-image">
-        <h2>Identify and Check Your Plant’s Health 🌱</h2>
-        <p>Upload your leaf photos below to detect if your plant is healthy or needs care </p>
+  <h1>🌱 Plant Health Detection</h1>
 
-        <form action="/predict" method="post" enctype="multipart/form-data">
-            <input type="file" name="files[]" id="fileInput" accept=".jpg,.jpeg,.png" multiple required><br>
+  <div class="upload-card">
+    <!-- keep your static image -->
+    <img src="{{ url_for('static', filename='images/image.png') }}" alt="Plant image">
 
-            <!-- Preview container -->
-            <div id="preview" class="preview-container"></div>
+    <!-- ✅ Only corrected input name to match Flask -->
+    <form method="POST" action="/predict" enctype="multipart/form-data" id="uploadForm">
+      <label for="fileInput" class="file-label">Add your leaf pic here 🌿</label>
+      <input id="fileInput" type="file" name="file" accept="image/*" required />
+      <div id="fileName" class="file-name">No file chosen</div>
+      <br>
+      <input type="submit" value="Check Health 🌿" />
+    </form>
+  </div>
 
-            <button type="submit">Diagnose Now</button>
-        </form>
-    </section>
+  <footer>🌸 Helping plant lovers care better 🌸</footer>
 
-    <footer>🌸 Helping plant lovers care better 🌸</footer>
+  <script>
+    // 🌵 Floating cactus with droppings
+    (function spawnCactus() {
+      const num = 8;
+      for (let i = 0; i < num; i++) {
+        const c = document.createElement('div');
+        c.className = 'cactus';
+        const left = Math.random() * 100;
+        const size = 20 + Math.random() * 15;
+        c.style.left = left + 'vw';
+        c.style.width = c.style.height = size + 'px';
+        c.style.animationDuration = (10 + Math.random() * 8) + 's';
+        c.style.animationDelay = (Math.random() * 5) + 's';
+        document.body.appendChild(c);
 
-    <script>
-        // JavaScript to preview selected images
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            const previewContainer = document.getElementById('preview');
-            previewContainer.innerHTML = ""; // Clear existing previews
+        const dropCount = 1 + Math.floor(Math.random() * 3);
+        for (let d = 0; d < dropCount; d++) {
+          const delay = 1000 + Math.random() * 4000;
+          setTimeout(() => spawnDrop(left, size), delay);
+        }
+      }
 
-            const files = event.target.files;
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
+      function spawnDrop(leftVw, parentSize) {
+        const drop = document.createElement('div');
+        drop.className = 'drop';
+        const leftPx = (leftVw / 100) * window.innerWidth + (Math.random() * 20 - 10);
+        drop.style.left = leftPx + 'px';
+        drop.style.width = drop.style.height = (10 + Math.random() * 8) + 'px';
+        drop.style.animationDuration = (3 + Math.random() * 3) + 's';
+        document.body.appendChild(drop);
+        setTimeout(() => drop.remove(), 6000);
+      }
+    })();
 
-                reader.onload = function(e) {
-                    const img = document.createElement("img");
-                    img.src = e.target.result;
-                    previewContainer.appendChild(img);
-                };
+    // 🌙 Theme toggle
+    const toggleBtn = document.getElementById("themeToggle");
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      toggleBtn.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+    });
 
-                reader.readAsDataURL(file);
-            }
-        });
-    </script>
+    // 📂 File name display
+    const fileInput = document.getElementById("fileInput");
+    const fileName = document.getElementById("fileName");
+    fileInput.addEventListener("change", () => {
+      fileName.textContent = fileInput.files.length
+        ? fileInput.files[0].name
+        : "No file chosen";
+    });
+
+    // ✨ Fade transition
+    const form = document.getElementById("uploadForm");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      document.body.classList.add("fade-out");
+      setTimeout(() => form.submit(), 500);
+    });
+  </script>
 </body>
 </html>
