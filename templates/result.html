@@ -1,119 +1,262 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌿 Diagnosis Results</title>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(180deg, #f9fdf9 0%, #c7e2c3 100%);
-            margin: 0;
-            padding: 0;
-            color: #2d4831;
-            text-align: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plant Health Results 🌿</title>
 
-        header {
-            padding: 20px;
-            font-size: 2rem;
-            font-weight: 600;
-            color: #2d4831;
-        }
+  <style>
+    :root {
+      --bg-light: #C5E6B7;
+      --bg-dark: #2F4C39;
+      --card-light: #ffffff;
+      --card-dark: #324B3A;
+      --text-light: #1B5E20;
+      --text-dark: #CDEAC0;
+      --accent: #388E3C;
+    }
 
-        .container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 30px;
-        }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      margin: 0;
+      padding: 40px;
+      text-align: center;
+      overflow-x: hidden;
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards;
+    }
 
-        .grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 25px;
-            margin-top: 30px;
-        }
+    @keyframes fadeIn { to { opacity: 1; } }
 
-        .card {
-            width: 250px;
-            background-color: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
 
-        .card:hover {
-            transform: translateY(-5px);
-        }
+    .result-card {
+      display: inline-block;
+      background: var(--card-light);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
 
-        .card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
+    .result-card:hover {
+      transform: scale(1.02);
+    }
 
-        .card h3 {
-            margin: 10px 0 0;
-            color: #2d4831;
-        }
+    img.uploaded {
+      width: 280px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
 
-        .card p {
-            color: #4a6b4c;
-            margin-bottom: 10px;
-        }
+    .prediction {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
 
-        .advice {
-            background-color: #f1fdf3;
-            padding: 12px;
-            margin: 10px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-        }
+    .confidence {
+      font-size: 1.1em;
+      color: #2F4C39;
+      margin-bottom: 20px;
+    }
 
-        a {
-            display: inline-block;
-            margin-top: 25px;
-            background: linear-gradient(90deg, #4CAF50, #81C784);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: 0.3s;
-        }
+    .care-instructions {
+      background: #E8F5E9;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 1em;
+      color: #2E7D32;
+      margin-top: 10px;
+      text-align: left;
+      display: inline-block;
+      max-width: 380px;
+      line-height: 1.6em;
+    }
 
-        a:hover {
-            background: linear-gradient(90deg, #45a049, #7cbf76);
-            transform: scale(1.05);
-        }
-    </style>
+    .btn {
+      padding: 12px 24px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 25px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn:hover {
+      background-color: #1b5e20;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #555;
+      opacity: 0.8;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    body.dark .result-card {
+      background: var(--card-dark);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+    }
+
+    /* Floating cactus and drops (keep same effect) */
+    .cactus {
+      position: fixed;
+      top: -60px;
+      width: 25px;
+      height: 25px;
+      background: url('{{ url_for('static', filename='images/cactus.png') }}') no-repeat center/contain;
+      opacity: 0.8;
+      animation: floatDown linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .drop {
+      position: fixed;
+      top: -40px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(80, 120, 80, 0.8);
+      box-shadow: 0 0 10px rgba(80, 120, 80, 0.3);
+      opacity: 0.9;
+      animation: dropFall linear forwards;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes floatDown {
+      0% { transform: translateY(-60px) rotate(0deg); opacity: 0.9; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    @keyframes dropFall {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(110vh) scale(0.9); opacity: 0; }
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 25px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      cursor: pointer;
+      font-size: 20px;
+      transition: background 0.3s ease, transform 0.2s ease;
+      z-index: 1000;
+    }
+
+    .theme-toggle:hover {
+      background: #1b5e20;
+      transform: scale(1.1);
+    }
+  </style>
 </head>
+
 <body>
-    <header>🍃 Diagnosis Results</header>
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
 
-    <div class="container">
-        <p>Here’s what our AI detected from your uploaded image:</p>
+  <h1>🌿 Your Plant Health Diagnosis Report</h1>
 
-        <div class="grid">
-            {% for result in results %}
-                <div class="card">
-                    <img src="{{ url_for('uploaded_file', filename=result.filename) }}" alt="Leaf Image">
-                    <h3>{{ result.label }}</h3>
-                    <p>Confidence: <strong>{{ result.confidence }}</strong></p>
-                    <div class="advice">
-                        {% if 'Healthy' in result.label %}
-                            🌸 Your plant looks healthy! Keep providing sunlight and regular watering.
-                        {% else %}
-                            🍂 Your plant might be diseased. Trim affected leaves and check soil moisture.
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+  <div class="result-card">
+    <!-- ✅ Show uploaded image -->
+    <img src="{{ image_url }}" alt="Uploaded Leaf Image" class="uploaded">
 
-        <a href="/">🔁 Diagnose Another Leaf</a>
+    <!-- Display model prediction and confidence -->
+    <div class="prediction">{{ prediction }}</div>
+    <div class="confidence">Confidence: {{ confidence }}</div>
+
+    <!-- Conditional care instructions -->
+    {% if is_healthy %}
+    <div class="care-instructions">
+      ✅ <strong>Your plant looks healthy!</strong>
+      <ul>
+        <li>🌞 Ensure 5–6 hours of sunlight daily</li>
+        <li>💧 Water moderately (avoid soggy soil)</li>
+        <li>🌿 Clean leaves weekly to remove dust</li>
+        <li>🌸 Use a balanced fertilizer monthly</li>
+      </ul>
     </div>
+    {% else %}
+    <div class="care-instructions">
+      ⚠️ <strong>Your plant may be diseased.</strong>
+      <ul>
+        <li>🚫 Isolate the affected plant to prevent spread</li>
+        <li>🔍 Check for pests under the leaves</li>
+        <li>✂️ Trim off infected leaves carefully</li>
+        <li>🌾 Apply mild organic fungicide or neem oil</li>
+        <li>🌬️ Ensure good air circulation around the plant</li>
+      </ul>
+    </div>
+    {% endif %}
+
+    <a href="/" class="btn">🌱 Go Back</a>
+  </div>
+
+  <footer>🌸 Helping plant lovers care better 🌸</footer>
+
+  <script>
+    // 🌙 Dark/light mode toggle (same as index)
+    const toggleBtn = document.getElementById("themeToggle");
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      toggleBtn.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+    });
+
+    // 🌵 Floating cactus with droppings
+    (function spawnCactus() {
+      const num = 8;
+      for (let i = 0; i < num; i++) {
+        const c = document.createElement('div');
+        c.className = 'cactus';
+        const left = Math.random() * 100;
+        const size = 20 + Math.random() * 15;
+        c.style.left = left + 'vw';
+        c.style.width = c.style.height = size + 'px';
+        c.style.animationDuration = (10 + Math.random() * 8) + 's';
+        c.style.animationDelay = (Math.random() * 5) + 's';
+        document.body.appendChild(c);
+
+        const dropCount = 1 + Math.floor(Math.random() * 3);
+        for (let d = 0; d < dropCount; d++) {
+          const delay = 1000 + Math.random() * 4000;
+          setTimeout(() => spawnDrop(left, size), delay);
+        }
+      }
+
+      function spawnDrop(leftVw, parentSize) {
+        const drop = document.createElement('div');
+        drop.className = 'drop';
+        const leftPx = (leftVw / 100) * window.innerWidth + (Math.random() * 20 - 10);
+        drop.style.left = leftPx + 'px';
+        drop.style.width = drop.style.height = (10 + Math.random() * 8) + 'px';
+        drop.style.animationDuration = (3 + Math.random() * 3) + 's';
+        document.body.appendChild(drop);
+        setTimeout(() => drop.remove(), 6000);
+      }
+    })();
+  </script>
 </body>
 </html>
